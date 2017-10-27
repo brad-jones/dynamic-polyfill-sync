@@ -1,0 +1,35 @@
+{
+    "name": "@brad-jones/dynamic-polyfill-sync",
+    "version": "1.0.0",
+    "description": "A synchronous version of dynamic-polyfill.",
+    "author": "Brad Jones <brad@bjc.id.au>",
+    "repository": "brad-jones/dynamic-polyfill-sync",
+    "license": "MIT",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "commit": "commit",
+        "commitmsg": "commitlint -e",
+        "clean": "shx rm -rf ./dist",
+        "build": "rollup --config rollup.config.js",
+        "rebuild": "yarn clean; yarn build;",
+        "test": "echo 'Tests Comming Soon :)';",
+        "cover": "echo 'Tests Comming Soon :)';"
+    },
+    "devDependencies": {
+        "@commitlint/cli": "^4.2.1",
+        "@commitlint/config-angular": "^4.2.1",
+        "@commitlint/prompt-cli": "^4.2.1",
+        "@types/node": "^8.0.47",
+        "husky": "^0.14.3",
+        "nodemon": "^1.12.1",
+        "rollup": "^0.50.0",
+        "rollup-plugin-typescript2": "^0.7.0",
+        "rollup-plugin-uglify": "^2.0.1",
+        "shx": "^0.2.2",
+        "typescript": "^2.5.3"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}
