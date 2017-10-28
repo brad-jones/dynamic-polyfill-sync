@@ -33,7 +33,7 @@ export * from './FooModule';
 export * from './BarModule';
 ```
 
-### Proving a custom polyfill.io url
+### Providing a custom polyfill.io url
 ```js
 polyfill(['fills...'], 'https://cdn.custom-polyfill-service.com/v2');
 ```
