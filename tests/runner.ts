@@ -7,6 +7,9 @@ import { getLastCommit } from 'git-last-commit';
 import LocalWebServer = require('local-web-server');
 import sauceConnectLauncher = require('sauce-connect-launcher');
 
+// This our build number, so we can easily group tests
+const BUILD_NO = Date.now();
+
 // This is the URL that saucelabs will instruct each browser to open.
 const TEST_URL = 'https://localhost:8000/tests/runner.html';
 
@@ -149,7 +152,7 @@ new Listr
 
                                     // Log the git commit hash and message against the job once it is complete
                                     // This is so we can easily tie it back to a commit and it nicelyt groups the tests too.
-                                    sauceRestClient.put(`jobs/${job_id}`, { build: gitCommit.notes, tags: [ gitCommit.hash, gitCommit.subject ]}).then(_ =>
+                                    sauceRestClient.put(`jobs/${job_id}`, { build: BUILD_NO, tags: [ gitCommit.hash, gitCommit.subject ]}).then(_ =>
                                     {
                                         if (typeof result['failed'] !== 'undefined' && result['failed'] > 0)
                                         {
