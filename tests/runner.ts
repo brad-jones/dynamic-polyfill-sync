@@ -211,7 +211,9 @@ new Listr
             ctx.server.close(resolve);
         })
     }
-])
+],{
+    renderer: process.env['CI'] === 'true' ? 'verbose' : 'default'
+})
 .run()
 .catch(e =>
 {
