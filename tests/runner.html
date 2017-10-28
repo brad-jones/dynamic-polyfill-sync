@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>@brad-jones/dynamic-polyfill-sync Test Page</title>
+        <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-1.23.1.css">
+    </head>
+    <body>
+        <div id="qunit"></div>
+        <div id="qunit-fixture"></div>
+        <script src="https://code.jquery.com/qunit/qunit-1.23.1.js"></script>
+        <script>
+            var log = [];
+
+            QUnit.done(function (test_results)
+            {
+                var tests = [];
+                for(var i = 0, len = log.length; i < len; i++)
+                {
+                    var details = log[i];
+                    tests.push
+                    ({
+                        name: details.name,
+                        result: details.result,
+                        expected: details.expected,
+                        actual: details.actual,
+                        source: details.source
+                    });
+                }
+                test_results.tests = tests;
+                window.global_test_results = test_results;
+            });
+
+            QUnit.testStart(function(testDetails)
+            {
+                QUnit.log(function(details)
+                {
+                    if (!details.result)
+                    {
+                        details.name = testDetails.name;
+                        log.push(details);
+                    }
+                });
+            });
+        </script>
+        <script src="../dist/index.js"></script>
+        <script src="./qunit.spec.js"></script>
+    </body>
+</html>

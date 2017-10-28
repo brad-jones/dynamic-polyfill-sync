@@ -16,7 +16,7 @@ export default
     [
         typescript
         ({
-            tsconfig: './tsconfig.json',
+            tsconfig: './src/tsconfig.json',
             typescript: require('typescript'),
             clean: true
         }),
