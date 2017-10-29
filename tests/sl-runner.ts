@@ -162,10 +162,10 @@ new Listr
                                 if (startTime !== null && ((Date.now() - startTime) > TEST_TIMEOUT))
                                 {
                                     clearInterval(getStatus);
-                                    updateTitle(`${platformString}, jobId: ${jobId}, status: Timed out waiting for test to complete.`);
+                                    updateTitle(`${platformString}, jobId: ${statusJobId}, status: Timed out waiting for test to complete.`);
                                     sauceRestClient.put(`jobs/${statusJobId}/stop`)
-                                    .then(_ => { reject({jobId: jobId, platform: platform, results: 'Timed out waiting for test to complete.'}); })
-                                    .catch(_ => { reject({jobId: jobId, platform: platform, results: 'Timed out waiting for test to complete.'}); });
+                                    .then(_ => { reject({jobId: statusJobId, platform: platform, results: 'Timed out waiting for test to complete.'}); })
+                                    .catch(_ => { reject({jobId: statusJobId, platform: platform, results: 'Timed out waiting for test to complete.'}); });
                                     return;
                                 }
 
@@ -183,13 +183,13 @@ new Listr
                                     }
 
                                     // Update the title of the task with the job status
-                                    updateTitle(`${platformString}, jobId: ${jobId}, status: ${typeof status === 'undefined' ? 'waiting for job to finish' : status}`);
+                                    updateTitle(`${platformString}, jobId: ${statusJobId}, status: ${typeof status === 'undefined' ? 'waiting for job to finish' : status}`);
 
                                     // If the test errors for some reason, then bail out early
                                     if (status === 'test error')
                                     {
                                         clearInterval(getStatus);
-                                        reject({jobId: jobId, platform: platform, results: 'Unknown Test Error, check sauce configuration.'});
+                                        reject({jobId: statusJobId, platform: platform, results: 'Unknown Test Error, check sauce configuration.'});
                                         return;
                                     }
 
@@ -205,7 +205,7 @@ new Listr
                                         {
                                             if (typeof result['failed'] !== 'undefined' && result['failed'] > 0)
                                             {
-                                                reject({jobId: jobId, platform: platform, results: result});
+                                                reject({jobId: statusJobId, platform: platform, results: result});
                                             }
                                             else
                                             {
@@ -214,7 +214,7 @@ new Listr
                                         })
                                         .catch(e =>
                                         {
-                                            reject({jobId: jobId, platform: platform, results: 'Job completed but failed to tag with git commit.'});
+                                            reject({jobId: statusJobId, platform: platform, results: 'Job completed but failed to tag with git commit.'});
                                         });
                                     }
                                 })
