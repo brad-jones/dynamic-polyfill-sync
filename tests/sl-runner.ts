@@ -38,7 +38,7 @@ const STATUS_CHECK_THROTTLE = 1000;
 // The number of jobs we will run in parallel.
 // NOTE: Sauce Connect seems to be a bottle neck, on slow links (ie: at home),
 // you will probably run into odd issues.
-const CONCURRENT_JOBS = process.env['CI'] === 'true' ? 1 : 1;
+const CONCURRENT_JOBS = process.env['CI'] === 'true' ? 4 : 1;
 
 // Read in the package json so we can use it for various metadata purposes.
 let pkg = require(`${__dirname}/../package.json`);
