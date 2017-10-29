@@ -108,7 +108,7 @@ new Listr
         title: 'Start sauce tunnel',
         task: (ctx) => new Promise((resolve, reject) =>
         {
-            sauceConnectLauncher({}, (error, tunnel) =>
+            sauceConnectLauncher({ directDomains: ['code.jquery.com', 'cdn.polyfill.io'] }, (error, tunnel) =>
             {
                 if (error)
                 {
