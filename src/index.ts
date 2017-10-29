@@ -29,7 +29,21 @@ function corsXHR(url: string): string
     // XDomainRequest does not actually support the third argument to the
     // open method but we do seem to be able to block here and achieve
     // the same result.
-    while (corsXhr.responseText.length === 0);
+    let prevLength = -1; let counter = 0;
+    while (prevLength !== corsXhr.responseText.length)
+    {
+        if (counter > 100000000)
+        {
+            throw new Error("Timed out waiting for polyfills!");
+        }
+
+        if (corsXhr.responseText.length > 0)
+        {
+            prevLength = corsXhr.responseText.length;
+        }
+
+        counter++;
+    }
 
     return corsXhr.responseText;
 }
