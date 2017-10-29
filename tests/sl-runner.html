@@ -9,11 +9,21 @@
         <div id="qunit-fixture"></div>
         <script src="https://code.jquery.com/qunit/qunit-1.23.1.js"></script>
         <script>
+            // Log all failed tests
             var log = [];
+            QUnit.log(function(details)
+            {
+                if (!details.result)
+                {
+                    log.push(details);
+                }
+            });
 
-            QUnit.done(function (test_results)
+            // Make the test result avaliable to sauce labs.
+            QUnit.done(function(testResults)
             {
                 var tests = [];
+
                 for(var i = 0, len = log.length; i < len; i++)
                 {
                     var details = log[i];
@@ -26,20 +36,10 @@
                         source: details.source
                     });
                 }
-                test_results.tests = tests;
-                window.global_test_results = test_results;
-            });
 
-            QUnit.testStart(function(testDetails)
-            {
-                QUnit.log(function(details)
-                {
-                    if (!details.result)
-                    {
-                        details.name = testDetails.name;
-                        log.push(details);
-                    }
-                });
+                testResults.tests = tests;
+
+                window.global_test_results = testResults;
             });
         </script>
         <script src="../dist/index.js"></script>

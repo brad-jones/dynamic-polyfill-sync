@@ -13,7 +13,7 @@ jobs:
           paths:
             - ./node_modules
       - run: yarn build
-      - run: yarn test
+      - run: yarn test-sl
       #- deploy:
       #    command: |
       #      if [ "${CIRCLE_BRANCH}" == "master" ]; then

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>@brad-jones/dynamic-polyfill-sync Test Page</title>
+        <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-1.23.1.css">
+    </head>
+    <body>
+        <div id="qunit"></div>
+        <div id="qunit-fixture"></div>
+        <script src="https://unpkg.com/atomicjs@latest/dist/atomic.min.js"></script>
+        <script src="https://code.jquery.com/qunit/qunit-1.23.1.js"></script>
+        <script>
+
+            // Super simple query string parser
+            // Credit: https://stackoverflow.com/questions/901115
+            var qs = (function(a)
+            {
+                if (a == "") return {};
+                var b = {};
+                for (var i = 0; i < a.length; ++i)
+                {
+                    var p = a[i].split('=', 2);
+                    if (p.length == 1) b[p[0]] = "";
+                    else b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
+                }
+                return b;
+            })(window.location.search.substr(1).split('&'));
+
+            // The headers we will send with each request back to the test runner
+            var headers = {
+                'Content-type': 'application/json',
+                'X-Bs-Session-Name': qs['sessionName']
+            };
+
+            // Log the start of each test back to the test runner.
+            QUnit.testStart(function(testDetails)
+            {
+                atomic.ajax
+                ({
+                    type: 'POST',
+                    url: '/__test.start',
+                    headers: headers,
+                    data: testDetails
+                });
+            });
+
+            // Log each test result back to the test runner.
+            QUnit.log(function(details)
+            {
+                atomic.ajax
+                ({
+                    type: 'POST',
+                    url: '/__test.complete',
+                    headers: headers,
+                    data: details
+                });
+            });
+
+            // Inform the test runner that we are done testing.
+            QUnit.done(function(testResults)
+            {
+                atomic.ajax
+                ({
+                    type: 'POST',
+                    url: '/__tests.complete',
+                    headers: headers,
+                    data: testResults
+                });
+            });
+        </script>
+        <script src="../dist/index.js"></script>
+        <script src="./qunit.spec.js"></script>
+    </body>
+</html>

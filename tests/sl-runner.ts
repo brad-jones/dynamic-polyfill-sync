@@ -7,11 +7,27 @@ import { getLastCommit } from 'git-last-commit';
 import LocalWebServer = require('local-web-server');
 import sauceConnectLauncher = require('sauce-connect-launcher');
 
+// Define the browsers that we are going to be testing
+let platforms =
+[
+    ['Windows 7', 'internet explorer', '8.0'],
+    ['Windows 7', 'internet explorer', '9.0'],
+    ['Windows 8', 'internet explorer', '10.0'],
+    ['Windows 10', 'internet explorer', '11.0'],
+    ['OS X 10.9', 'safari', '7'],
+    ['OS X 10.10', 'safari', '8'],
+    ['OS X 10.11', 'safari', '9'],
+    ['macOS 10.12', 'safari', '10'],
+    ['macOS 10.12', 'safari', '11'],
+    ['Linux', 'firefox', ''],
+    ['Linux', 'chrome', '']
+];
+
 // This our build number, so we can easily group tests
 const BUILD_NO = Date.now();
 
 // This is the URL that saucelabs will instruct each browser to open.
-const TEST_URL = 'https://localhost:8000/tests/runner.html';
+const TEST_URL = 'http://localhost:8000/tests/sl-runner.html';
 
 // How long we will wait for a test job to run
 const TEST_TIMEOUT = 660000;
@@ -37,34 +53,49 @@ let sauceRestClient = axios.create
     }
 });
 
-// Define the browsers that we are going to be testing
-let platforms =
-[
-    ['Windows 7', 'internet explorer', '8.0'],
-    ['Windows 7', 'internet explorer', '9.0'],
-    ['Windows 8', 'internet explorer', '10.0'],
-    ['Windows 10', 'internet explorer', '11.0'],
-    ['OS X 10.9', 'safari', '7'],
-    ['OS X 10.10', 'safari', '8'],
-    ['OS X 10.11', 'safari', '9'],
-    ['macOS 10.12', 'safari', '10'],
-    ['macOS 10.12', 'safari', '11'],
-    ['Linux', 'firefox', ''],
-    ['Linux', 'chrome', '']
-];
-
 new Listr
 ([
     {
         title: 'Start local web server',
         task: (ctx) =>
         {
-            let httpServer = new LocalWebServer();
-            ctx.server = httpServer.listen
+            ctx.httpServer = (new LocalWebServer()).listen
             ({
                 port: 8000,
+                directory: fs.realpathSync(`${__dirname}/..`),
+                stack:
+                [
+                    LwsMiddleWare => class RedirectToHttps extends LwsMiddleWare
+                    {
+                        middleware (options)
+                        {
+                            return async (ctx, next) =>
+                            {
+                                // MacOs / Safari at Sauce Labs do not like the self signed cert.
+                                // In theory the SSL Bumping feature of SC, is meant to solve that,
+                                // certianly appears to for IE and others. Just not the Mac tests.
+                                // Anyway it really only IE that needs SSL because of "XDomainRequest".
+                                if (ctx.request.headers['user-agent'].indexOf('Mac OS X') > -1)
+                                {
+                                    await next();
+                                }
+                                else
+                                {
+                                    ctx.redirect(TEST_URL.replace('http://', 'https://').replace('8000', '8080'));
+                                }
+                            }
+                        }
+                    },
+                    'lws-static'
+                ]
+            });
+
+            ctx.httpsServer = (new LocalWebServer()).listen
+            ({
+                port: 8080,
                 https: true,
-                directory: fs.realpathSync(`${__dirname}/..`)
+                directory: fs.realpathSync(`${__dirname}/..`),
+                stack: ['lws-static']
             });
         }
     },
@@ -208,7 +239,10 @@ new Listr
         title: 'Shutdown local web server',
         task: (ctx) => new Promise(resolve =>
         {
-            ctx.server.close(resolve);
+            ctx.httpServer.close(() =>
+            {
+                ctx.httpsServer.close(resolve);
+            });
         })
     }
 ],{
