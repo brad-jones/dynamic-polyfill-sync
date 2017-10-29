@@ -30,10 +30,15 @@ const BUILD_NO = Date.now();
 const TEST_URL = 'http://localhost:8000/tests/sl-runner.html';
 
 // How long we will wait for a test job to run
-const TEST_TIMEOUT = 660000;
+const TEST_TIMEOUT = 120000;
 
 // How often we poll saucelabs to get the status of our tests
-const SAUCE_STATUS_CHECK_THROTTLE = 3000;
+const STATUS_CHECK_THROTTLE = 1000;
+
+// The number of jobs we will run in parallel.
+// NOTE: Sauce Connect seems to be a bottle neck, on slow links (ie: at home),
+// you will probably run into odd issues.
+const CONCURRENT_JOBS = process.env['CI'] === 'true' ? 1 : 1;
 
 // Read in the package json so we can use it for various metadata purposes.
 let pkg = require(`${__dirname}/../package.json`);
@@ -118,114 +123,111 @@ new Listr
         })
     },
     {
-        title: 'Enqueuing test jobs',
-        task: async (ctx) =>
-        {
-            let response = await sauceRestClient.post('js-tests',
-            {
-                name: pkg.name,
-                framework: 'qunit',
-                url: TEST_URL,
-                platforms: platforms
-            });
-
-            ctx.jobs = response.data['js tests'];
-        }
-    },
-    {
         title: 'Running tests',
         task: (ctx) => new Listr
         (
-            ctx.jobs.map(job =>
+            platforms.map(platform =>
             {
+                let platformString = platform.join(' ');
+
                 return {
-                    title: job,
+                    title: platformString,
                     task: (ctx, task) => new Promise((resolve, reject) =>
                     {
-                        let startTime = null, title = `${job}`;
-
-                        // Run a settimeout loop until the job either complete or timesout.
-                        let getStatus = () =>
+                        let updateTitle = (newTitle: string) =>
                         {
-                            sauceRestClient.post('js-tests/status', {'js tests': [job]})
-                            .then(response =>
+                            if (newTitle != task.title)
                             {
-                                // Grab some data out of the response
-                                let job_id = response.data['js tests'][0]['job_id'];
-                                let status = response.data['js tests'][0]['status'];
-                                let platform = response.data['js tests'][0]['platform'].join(' ');
+                                task.title = newTitle;
+                            }
+                        };
 
-                                // Update the title of the task
-                                let newTitle = `${job_id === 'job not ready' ? job : job_id} - ${platform}${typeof status === 'undefined' ? '' : ' - ' + status}`;
-                                if (title != newTitle) { title = newTitle; task.title = title; }
+                        sauceRestClient.post('js-tests',
+                        {
+                            name: pkg.name,
+                            framework: 'qunit',
+                            url: TEST_URL,
+                            platforms: [platform]
+                        })
+                        .then(jobResponse =>
+                        {
+                            let startTime = null;
+                            let jobId = jobResponse.data['js tests'][0];
+                            updateTitle(`${platformString}, jobId: ${jobId}`);
 
-                                // Only start timing once the job actually starts
-                                if (status === 'test session in progress' && startTime === null)
+                            let getStatus = setInterval(() =>
+                            {
+                                // Check for a timeout
+                                if (startTime !== null && ((Date.now() - startTime) > TEST_TIMEOUT))
                                 {
-                                    startTime = Date.now();
-                                }
-
-                                // If the test errors for some reason, then bail out early
-                                if (response.data['js tests'][0]['status'] === 'test error')
-                                {
-                                    reject({ job: job, platform: platform, results:
-                                    {
-                                        tests: 'Unknown Test Error, check sauce configuration.'
-                                    }});
-
+                                    clearInterval(getStatus);
+                                    updateTitle(`${platformString}, jobId: ${jobId}, status: Timed out waiting for test to complete.`);
+                                    sauceRestClient.put(`jobs/${jobId}/stop`)
+                                    .then(_ => { reject({jobId: jobId, platform: platform, results: 'Timed out waiting for test to complete.'}); })
+                                    .catch(_ => { reject({jobId: jobId, platform: platform, results: 'Timed out waiting for test to complete.'}); });
                                     return;
                                 }
 
-                                // Check if the job has been completed
-                                if (response.data['completed'] === true)
+                                sauceRestClient.post('js-tests/status', {'js tests': [jobId]})
+                                .then(statusResponse =>
                                 {
-                                    let result = response.data['js tests'][0]['result'];
+                                    let statusInfo = statusResponse.data['js tests'][0];
+                                    let status = statusInfo['status'];
 
-                                    // Log the git commit hash and message against the job once it is complete
-                                    // This is so we can easily tie it back to a commit and it nicelyt groups the tests too.
-                                    sauceRestClient.put(`jobs/${job_id}`, { build: BUILD_NO, tags: [ gitCommit.hash, gitCommit.subject ]}).then(_ =>
+                                    // Only start timing once the job actually starts
+                                    if (status === 'test session in progress' && startTime === null)
                                     {
-                                        if (typeof result['failed'] !== 'undefined' && result['failed'] > 0)
-                                        {
-                                            reject({ job: job, platform: platform, results: result });
-                                        }
-                                        else
-                                        {
-                                            resolve();
-                                        }
-                                    })
-                                    .catch(e =>
+                                        startTime = Date.now();
+                                    }
+
+                                    // Update the title of the task with the job status
+                                    updateTitle(`${platformString}, jobId: ${jobId}, status: ${typeof status === 'undefined' ? 'waiting for job to finish' : status}`);
+
+                                    // If the test errors for some reason, then bail out early
+                                    if (status === 'test error')
                                     {
-                                        reject({ job: job, platform: platform, results:
+                                        clearInterval(getStatus);
+                                        reject({jobId: jobId, platform: platform, results: 'Unknown Test Error, check sauce configuration.'});
+                                        return;
+                                    }
+
+                                    // Check if the job has been completed
+                                    if (statusResponse.data['completed'] === true)
+                                    {
+                                        clearInterval(getStatus);
+                                        let result = statusInfo['result'];
+
+                                        // Log the git commit hash and message against the job once it is complete
+                                        // This is so we can easily tie it back to a commit and it nicelyt groups the tests too.
+                                        sauceRestClient.put(`jobs/${statusInfo['job_id']}`, { build: BUILD_NO, tags: [ gitCommit.hash, gitCommit.subject ]}).then(_ =>
                                         {
-                                            tests: 'Job completed but failed to tag with git commit.'
-                                        }});
-                                    });
-                                }
-                                else
+                                            if (typeof result['failed'] !== 'undefined' && result['failed'] > 0)
+                                            {
+                                                reject({jobId: jobId, platform: platform, results: result});
+                                            }
+                                            else
+                                            {
+                                                resolve();
+                                            }
+                                        })
+                                        .catch(e =>
+                                        {
+                                            reject({jobId: jobId, platform: platform, results: 'Job completed but failed to tag with git commit.'});
+                                        });
+                                    }
+                                })
+                                .catch(e =>
                                 {
-                                    // Either check for a timeout or queue the next execution of this method
-                                    if (startTime !== null && ((Date.now() - startTime) > TEST_TIMEOUT))
-                                    {
-                                        reject({ job: job, platform: platform, results:
-                                        {
-                                            tests: 'Timed out waiting for test to complete.'
-                                        }});
-                                    }
-                                    else
-                                    {
-                                        setTimeout(getStatus, SAUCE_STATUS_CHECK_THROTTLE);
-                                    }
-                                }
-                            })
-                            .catch(e => { /* swallow any failed status request errors, we will just be retrying very soon anyway */ });
-                        };
-
-                        setTimeout(getStatus, SAUCE_STATUS_CHECK_THROTTLE);
+                                    // swallow any failed status request errors,
+                                    // we will just be retrying very soon anyway
+                                });
+                            }, STATUS_CHECK_THROTTLE);
+                        })
+                        .catch(reject);
                     })
                 };
             }),
-            { concurrent: true, exitOnError: false }
+            { concurrent: CONCURRENT_JOBS, exitOnError: false }
         )
     },
     {
@@ -260,8 +262,8 @@ new Listr
 
         for (let error of e['errors'])
         {
-            console.error(chalk.gray(`${error['job']} - ${error['platform']}`));
-            console.error(chalk.red(JSON.stringify(error['results']['tests'], undefined, 4)));
+            console.error(chalk.gray(`${error['jobId']} - ${JSON.stringify(error['platform'])}`));
+            console.error(chalk.red(JSON.stringify(error['results'], undefined, 4)));
             console.error();
         }
     }
