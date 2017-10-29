@@ -32,7 +32,7 @@ function corsXHR(url: string): string
     let prevLength = -1; let counter = 0;
     while (prevLength !== corsXhr.responseText.length)
     {
-        if (counter > 100000000)
+        if (counter > 2147483647)
         {
             throw new Error("Timed out waiting for polyfills!");
         }
