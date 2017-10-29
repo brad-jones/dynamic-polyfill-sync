@@ -153,6 +153,7 @@ new Listr
                         {
                             let startTime = null;
                             let jobId = jobResponse.data['js tests'][0];
+                            let statusJobId = null;
                             updateTitle(`${platformString}, jobId: ${jobId}`);
 
                             let getStatus = setInterval(() =>
@@ -162,7 +163,7 @@ new Listr
                                 {
                                     clearInterval(getStatus);
                                     updateTitle(`${platformString}, jobId: ${jobId}, status: Timed out waiting for test to complete.`);
-                                    sauceRestClient.put(`jobs/${jobId}/stop`)
+                                    sauceRestClient.put(`jobs/${statusJobId}/stop`)
                                     .then(_ => { reject({jobId: jobId, platform: platform, results: 'Timed out waiting for test to complete.'}); })
                                     .catch(_ => { reject({jobId: jobId, platform: platform, results: 'Timed out waiting for test to complete.'}); });
                                     return;
@@ -172,6 +173,7 @@ new Listr
                                 .then(statusResponse =>
                                 {
                                     let statusInfo = statusResponse.data['js tests'][0];
+                                    statusJobId = statusInfo['job_id'];
                                     let status = statusInfo['status'];
 
                                     // Only start timing once the job actually starts
