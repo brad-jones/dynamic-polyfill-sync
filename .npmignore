@@ -4,6 +4,7 @@
 .gitattributes
 .gitignore
 .node-version
+.rpt2_cache
 rollup.config.js
 commitlint.config.js
 tsconfig.json
