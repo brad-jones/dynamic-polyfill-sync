@@ -8,7 +8,7 @@ function getSync(url: string): string
     return xhr.responseText;
 }
 
-export default function polyfill(fills: string[], customPolyFillService: string = POLYFILL_SERVICE): void
+export function polyfill(fills: string[], customPolyFillService: string = POLYFILL_SERVICE): void
 {
     // First perform the the feature detection
     var needsPolyfill = [];
