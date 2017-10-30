@@ -93,13 +93,19 @@ So yes multiple requests might end up being made to https://polyfill.io but
 not for the same content.
 
 ## Know Issues
-IE8 & 9 do not offer a standards compliant CORS implementation of `XMLHttpRequest`.
-Instead we use `XDomainRequest` which works but there are a few restrictions.
+Actually after heaps of testing (via SauceLabs / BrowserStack), it appears that IE8 & 9 will load a CORS resource so long as it is over HTTPS, using the normal old `XMLHttpRequest`.
 
-> 7. Requests must be targeted to the same scheme as the hosting page.
+I actually had it all working in IE8 with `XDomainRequest` but it would not work in IE9. I then dropped the use of `XDomainRequest` altogether and it worked in both IE8 & 9.
+
+Honestly I still don't get it as it appears to contradict all the documnetation. Until someone comes along and says it doesn't work I am not going to look at it any further.
+
+~~IE8 & 9 do not offer a standards compliant CORS implementation of `XMLHttpRequest`.
+Instead we use `XDomainRequest` which works but there are a few restrictions.~~
+
+> 7. ~~Requests must be targeted to the same scheme as the hosting page.
      This restriction means that if your AJAX page is at http://example.com,
      then your target URL must also begin with HTTP. Similarly, if your
      AJAX page is at https://example.com, then your target URL must also
-     begin with HTTPS.
+     begin with HTTPS.~~
 
-Read more: https://goo.gl/GPY87s
+~~Read more: https://goo.gl/GPY87s~~
