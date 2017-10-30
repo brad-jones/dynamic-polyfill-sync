@@ -1,3 +1,13 @@
+<a name="0.2.0"></a>
+## 0.2.0 (2017-10-30)
+
+
+#### Features
+
+* **builds:** we now offer 3 distinct builds, cjs, esm and browser ([86d90eaf](https://github.com/brad-jones/dynamic-polyfill-sync/commit/86d90eaf))
+* **module:** default exports can cause issues ([fe001c46](https://github.com/brad-jones/dynamic-polyfill-sync/commit/fe001c46))
+
+
 <a name="0.1.1"></a>
 ### 0.1.1 (2017-10-30)
 
