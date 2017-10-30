@@ -1,7 +1,7 @@
 # dynamic-polyfill-sync
 [![CircleCI](https://circleci.com/gh/brad-jones/dynamic-polyfill-sync.svg?style=svg)](https://circleci.com/gh/brad-jones/dynamic-polyfill-sync)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
-[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)  
 [![Build Status](https://saucelabs.com/browser-matrix/dynamic-polyfill-sync.svg)](https://saucelabs.com/u/dynamic-polyfill-sync)
 
