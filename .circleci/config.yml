@@ -13,12 +13,12 @@ jobs:
           paths:
             - ./node_modules
       - run: yarn build
-      - run: yarn test-sl
-      #- deploy:
-      #    command: |
-      #      if [ "${CIRCLE_BRANCH}" == "master" ]; then
-      #        git config --global user.email "$GIT_EMAIL"
-      #        git config --global user.name "$GIT_NAME"
-      #        echo -e "$NPM_USERNAME\n$NPM_PASSWORD\n$NPM_EMAIL" | npm login
-      #        npm run release
-      #      fi
+      - run: yarn test
+      - deploy:
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              git config --global user.email "$GIT_EMAIL"
+              git config --global user.name "$GIT_NAME"
+              echo -e "$NPM_USERNAME\n$NPM_PASSWORD\n$NPM_EMAIL" | npm login
+              npm run unleash
+            fi
