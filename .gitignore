@@ -61,4 +61,4 @@ typings/
 .rpt2_cache
 
 # Built source
-dist
+dist*

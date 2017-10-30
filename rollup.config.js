@@ -9,7 +9,7 @@ export default
     output:
     {
         name: pkg.name,
-        file: './dist/index.js',
+        file: './dist-browser/index.js',
         format: 'umd'
     },
     plugins:
