@@ -1,6 +1,6 @@
 {
     "name": "@brad-jones/dynamic-polyfill-sync",
-    "version": "0.0.0",
+    "version": "0.1.0",
     "description": "A synchronous version of dynamic-polyfill.",
     "author": "Brad Jones <brad@bjc.id.au>",
     "repository": "brad-jones/dynamic-polyfill-sync",
