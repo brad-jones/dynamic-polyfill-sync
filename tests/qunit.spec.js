@@ -14,3 +14,9 @@ QUnit.test("EnsurePromisePolyfillLoads", function(assert)
     window['@brad-jones/dynamic-polyfill-sync'](['Promise']);
     assert.ok(Promise);
 });
+
+QUnit.test("EnsureArrayPrototypeIncludesPolyfillLoads", function(assert)
+{
+    window['@brad-jones/dynamic-polyfill-sync'](['Array.prototype.includes']);
+    assert.ok(Array.prototype.includes);
+});

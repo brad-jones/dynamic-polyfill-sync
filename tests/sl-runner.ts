@@ -19,8 +19,12 @@ let platforms =
     ['OS X 10.11', 'safari', '9'],
     ['macOS 10.12', 'safari', '10'],
     ['macOS 10.12', 'safari', '11'],
-    ['Linux', 'firefox', ''],
-    ['Linux', 'chrome', '']
+    ['Linux', 'firefox', 'latest'],
+    ['Linux', 'firefox', 'latest-1'],
+    ['Linux', 'firefox', '30'],
+    ['Linux', 'chrome', 'latest'],
+    ['Linux', 'chrome', 'latest-1'],
+    ['Linux', 'chrome', '35']
 ];
 
 // This our build number, so we can easily group tests
