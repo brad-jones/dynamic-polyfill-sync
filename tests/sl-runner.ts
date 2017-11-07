@@ -10,8 +10,6 @@ import sauceConnectLauncher = require('sauce-connect-launcher');
 // Define the browsers that we are going to be testing
 let platforms =
 [
-    ['Windows 7', 'internet explorer', '8.0'],
-    ['Windows 7', 'internet explorer', '9.0'],
     ['Windows 8', 'internet explorer', '10.0'],
     ['Windows 10', 'internet explorer', '11.0'],
     ['OS X 10.9', 'safari', '7'],

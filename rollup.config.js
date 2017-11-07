@@ -20,7 +20,7 @@ export default
             typescript: require('typescript'),
             clean: true
         }),
-        uglify({ ie8:true })
+        uglify()
     ],
     sourcemap: true,
     onwarn(warning)
