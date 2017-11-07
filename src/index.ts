@@ -29,5 +29,5 @@ export function polyfill(fills: string[], customPolyFillService: string = POLYFI
     if (needsPolyfill.length === 0) return;
 
     // Finally load and eval the required polyfills
-    eval(getSync(`${customPolyFillService}/polyfill.min.js?features=${needsPolyfill.join(',')}`));
+    eval(getSync(`${customPolyFillService}/polyfill.min.js?features=${needsPolyfill.join('|always,')}|always`));
 }
